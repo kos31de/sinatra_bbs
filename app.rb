@@ -3,8 +3,20 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'rack/csrf'
 
-use Rack::Session::Cookie, secret: "thisisisomethingsecret"
+use Rack::Session::Cookie, secret: "thisissomethingsecret"
 use Rack::Csrf, raise: true
+
+helpers do
+  def csrf_tag
+    Rack::Csrf.csrf_tag(env)
+  end
+  def csrf_token
+    Rack::Csrf.csrf_token(env)
+  end
+  def h(str)
+    Rack::Utils.escape_html(str)
+  end
+end
 
 ActiveRecord::Base.establish_connection(
   adapter: 'sqlite3',
@@ -13,7 +25,6 @@ ActiveRecord::Base.establish_connection(
 
 class Comment < ActiveRecord::Base
   validates :body, presence: true
-
 end
 
 get '/' do
@@ -22,7 +33,7 @@ get '/' do
   erb :index
 end
 # getとpostの違い
-get '/create' do
+post '/create' do
   Comment.create(body: params[:body])
   redirect to('/')
 end
